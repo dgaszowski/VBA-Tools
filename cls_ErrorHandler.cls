@@ -10,16 +10,18 @@ Attribute VB_Exposed = False
 Option Compare Database
 Option Explicit
 
+#Const DEBUG_MODE = True
+#Const APPLICATION = "Access"
+
 Private m_objErrorTable As Collection
 Private m_objCallStack As Collection
 
+Private m_strPath As String
 Private m_strLogFileName As String
 
 Private m_strLogErrorName As String
 Private m_strErrorTitle As String
 Private m_strErrorText As String
-
-Private m_blnDebugMode As Boolean
 
 Public Property Set ErrorTable(ByRef objErrorTable As Collection)
     
@@ -61,16 +63,6 @@ Private Property Get ErrorMessage(ByVal lngErrNumber As Long) As String
     Error = m_objErrorTable(CStr(lngErrNumber))
 End Property
 
-Public Property Let DebugMode(ByVal blnDebug As Boolean)
-
-    m_blnDebugMode = blnDebug
-End Property
-
-Public Property Get DebugMode() As Boolean
-
-    DebugMode = m_blnDebugMode
-End Property
-
 Public Property Let LogFileName(ByVal strFileName As String)
     
     m_strLogFileName = strFileName
@@ -94,22 +86,23 @@ Public Sub raiseException(ByVal lngErrNb As Long)
             strErrorMessage = Error(lngErrNb)
         End If
         
-        intFileNb = FreeFile
-        
-        Open CurrentProject.Path & "\" & LogFileName For Append As #intFileNb
-        
         strErrorLine = Now & ", " & _
                       "Error nb, description: " & lngErrNb & ", " & strErrorMessage & "." & vbNewLine & vbTab & _
                       "Call stack:" & strPrintCallStack
         
-        Write #intFileNb, strErrorLine
-        Close #intFileNb
+        Call writeError(strErrorLine)
         
-        If DebugMode Then
+        #If DEBUG_MODE Then
             Debug.Print strErrorLine
-        End If
+        #End If
         
-        MsgBox "Error!", vbCritical
+        strErrorLine = "Error number: " & lngErrNb & vbNewLine & _
+                       "Error description: " & strErrorMessage & vbNewLine & vbNewLine & _
+                       "Call stack:" & strPrintCallStack & vbNewLine & _
+                       "Error has been logged."
+        
+        MsgBox strErrorLine, vbCritical, ErrorTitle
+        
         Stop
     End If
 End Sub
@@ -133,12 +126,18 @@ End Function
 
 Private Sub Class_Initialize()
     
-    ErrorTitle = "Generic error title"
+    #If APPLICATION = "Access" Then
+        m_strPath = CurrentProject.Path & "\"
+    #ElseIf APPLICATION = "Excel" Then
+        m_strPath = Workbook.Path & "\"
+    #ElseIf APPLICATION = "Word" Then
+        m_strPath = Document.Path & "\"
+    #End If
+    
+    ErrorTitle = "Error"
     ErrorText = "Error has occured."
     
     LogFileName = "Error.log"
-    
-    DebugMode = True
     
     Set m_objCallStack = New Collection
 
@@ -151,10 +150,33 @@ End Sub
 
 Private Function strPrintCallStack() As String
     Dim varCall As Variant
+    Dim lngCount As Long
     
     strPrintCallStack = vbNewLine
     
-    For Each varCall In m_objCallStack
-        strPrintCallStack = strPrintCallStack & vbTab & varCall & vbNewLine
-    Next
+    With m_objCallStack
+        lngCount = .Count
+        
+        Do While lngCount > 0
+            varCall = m_objCallStack(lngCount)
+            strPrintCallStack = strPrintCallStack & vbTab & lngCount & ") " & varCall & vbNewLine
+            lngCount = lngCount - 1
+        Loop
+    End With
+    
+    strPrintCallStack = strPrintCallStack + vbNewLine
 End Function
+
+Private Sub writeError(ByVal strErrorText As String)
+    Dim objFSO As Object
+    Dim objLogFile As Object
+    
+    Set objFSO = CreateObject("Scripting.FileSystemObject")
+    Set objLogFile = objFSO.OpenTextFile(m_strPath & LogFileName, 8)
+    
+    objLogFile.WriteLine strErrorText
+    objLogFile.Close
+    
+    Set objLogFile = Nothing
+    Set objFSO = Nothing
+End Sub
