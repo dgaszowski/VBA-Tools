@@ -12,10 +12,15 @@ Attribute VB_Exposed = False
 '
 '
 
-#Const DEBUG_MODE = True
-#Const APPLICATION = "Access"
+Private Const ERROR_LOG = "Error.log"
+Private Const ACCESS = "Acsess"
+Private Const EXCEL = "Excel"
+Private Const WORD = "WORD"
 
-#If APPLICATION = "Access" Then
+#Const DEBUG_MODE = True
+#Const APPLICATION = ACCESS
+
+#If APPLICATION = ACCESS Then
     Option Compare Database
 #Else
     Option Compare Text
@@ -39,7 +44,7 @@ Private Property Get ErrorMessage(ByVal lngErrNumber As Long) As String
 
     ' Custom error table.
     ' Return user defined error description.
-    Error = m_objErrorTable(CStr(lngErrNumber))
+    ErrorMessage = m_objErrorTable(CStr(lngErrNumber))
 End Property
 
 Public Property Let LogFileName(ByVal strFileName As String)
@@ -85,7 +90,7 @@ Public Sub raiseException(ByVal lngErrNb As Long)
         #End If
         
         strErrorLine = "Error number: " & lngErrNb & vbNewLine & _
-                       "Error description: " & strErrorMessage & vbNewLine & vbNewLine & _
+                       "Error description: " & strErrorMessage & "." & vbNewLine & vbNewLine & _
                        "Call stack:" & strPrintCallStack & vbNewLine & _
                        "Error has been logged."
         
@@ -122,15 +127,15 @@ End Function
 
 Private Sub Class_Initialize()
     
-    #If APPLICATION = "Access" Then
+    #If APPLICATION = ACCESS Then
         m_strPath = CurrentProject.Path & "\"
-    #ElseIf APPLICATION = "Excel" Then
+    #ElseIf APPLICATION = EXCEL Then
         m_strPath = Workbook.Path & "\"
-    #ElseIf APPLICATION = "Word" Then
+    #ElseIf APPLICATION = WORD Then
         m_strPath = Document.Path & "\"
     #End If
     
-    LogFileName = "Error.log"
+    LogFileName = ERROR_LOG
     
     Set m_objCallStack = New Collection
 
