@@ -1,0 +1,24 @@
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = False
+Attribute VB_Exposed = False
+Option Compare Database
+Option Explicit
+
+Public Property Get Package() As IPackage
+End Property
+
+Public Sub Install()
+End Sub
+
+Public Sub Uninstall()
+End Sub
+
+Public Sub Update()
+End Sub
+
+Public Function IsInstalled() As Boolean
+End Function
+
+Public Function IsRegistered() As Boolean
+End Function

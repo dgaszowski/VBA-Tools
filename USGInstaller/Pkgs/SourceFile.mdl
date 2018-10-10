@@ -1,0 +1,44 @@
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Compare Database
+Option Explicit
+
+Implements ISourceFile
+
+Private fileName_ As String
+Private fileDescription_ As String
+Private fileStream_ As Object
+Private MD5Hash_ As String
+
+Public Function Create(ByVal fileName As String, ByVal FileStream As Object, ByVal FileDescription As String, _
+                        ByVal hash As String)
+                        
+        fileName_ = fileName
+        fileDescription_ = FileDescription
+        Set fileStream_ = FileStream
+        MD5Hash_ = hash
+        
+        Set Create = Self
+End Function
+
+Public Property Get Self() As ISourceFile
+    Set Self = Me
+End Property
+
+Public Property Get ISourceFile_Name() As String
+    ISourceFile_Name = fileName_
+End Property
+
+Public Property Get ISourceFile_Stream() As Object
+    Set ISourceFile_Stream = fileStream_
+End Property
+
+Public Property Get ISourceFile_Description() As String
+    ISourceFile_Description = fileDescription_
+End Property
+
+Public Property Get ISourceFile_MD5Hash() As String
+    ISourceFile_MD5Hash = MD5Hash_
+End Property

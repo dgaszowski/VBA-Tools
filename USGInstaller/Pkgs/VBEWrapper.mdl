@@ -1,0 +1,44 @@
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = False
+Attribute VB_Exposed = False
+Option Compare Database
+Option Explicit
+Option Base 0
+
+Private projectsCount As Integer
+Private projectNames As Collection
+
+Public Property Get VBAProjectsCount() As Integer
+    VBAProjectsCount = projectsCount
+End Property
+
+Public Property Get VBAProjectName(ByVal I As Integer) As String
+    If I < 1 Or I > projectNames.count Then
+        Err.Raise 9, , "USG Installer Error" & vbNewLine & vbNewLine & Err.description
+    End If
+    
+    VBAProjectName = projectNames(I)
+End Property
+
+Public Property Get VBAModule(ByVal projectName As String, ByVal I As Integer) As String
+    VBAModule = VBE.VBProjects(projectName).VBComponents(I).Name
+End Property
+
+Public Sub Class_Initialize()
+    
+    Set projectNames = New Collection
+    '
+    ' Do some research about currently opened VBA projects.
+    '
+    Dim vbaProject
+    For Each vbaProject In VBE.VBProjects
+        ' Filter off this project and protected projects.
+        If vbaProject.Name <> "USGInstaller" And vbaProject.Protection = 0 Then
+            projectsCount = projectsCount + 1
+            
+            projectNames.Add vbaProject.Name & ";" & Dir(vbaProject.fileName), CStr(vbaProject.Type)
+        End If
+    Next
+    
+End Sub

@@ -1,0 +1,12 @@
+Option Compare Database
+Option Explicit
+
+Public Settings As InstallerSettings
+
+'Public Enum VBComponentTypes
+'    StdModule = 1
+'    ClassModule = 2
+'    MSForm = 3
+'    ActiveXDesigner = 11
+'    Document = 100
+'End Enum

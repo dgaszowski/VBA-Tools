@@ -1,0 +1,23 @@
+Option Compare Database
+Option Explicit
+
+'
+' Get count of VBA projects.
+' Do not include "USGInstaller" and project that are protected.
+'
+Public Property Get VBAProjectsCount() As Integer
+    VBAProjectsCount = UBound(Split(VBAProjects, ";"))
+End Property
+
+'
+' Get a list of VBA projects.
+' Do not include "USGInstaller" and project that are protected.
+'
+Public Property Get VBAProjects() As String
+    Dim vbaProject
+    For Each vbaProject In VBE.VBProjects
+        If vbaProject.Name <> "USGInstaller" And vbaProject.Protection = 0 Then
+            VBAProjects = VBAProjects & ";"
+        End If
+    Next
+End Property

@@ -1,0 +1,1 @@
+copy /B/Y USGInstaller.accda C:\Users\HBG3NPN\AppData\Roaming\Microsoft\AddIns

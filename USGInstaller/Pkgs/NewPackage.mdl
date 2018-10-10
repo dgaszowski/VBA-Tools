@@ -1,0 +1,84 @@
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Compare Database
+Option Explicit
+
+Implements IPackage
+
+Private pkgName As String
+Private pkgVersion As String
+Private sourceFiles As Collection
+
+'
+' Creates an instance of New Package.
+' packageName and packageVersion are self explanatory.
+' There are no restrictions set on packageVersion format.
+'
+' fileDesc should containg list of file names and their descriptions in format:
+' <file name>|<file description>
+'
+Public Function Create(ByVal packageName As String, ByVal packageVersion As String, ByVal filesDesc As Collection) As IPackage
+    
+    pkgName = packageName
+    pkgVersion = packageVersion
+    
+    Set sourceFiles = New Collection
+    
+    Dim fso As Object
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    
+    Dim file As Variant
+    For Each file In filesDesc
+        Dim fileInfo() As String
+        fileInfo = Split(file, ";")
+        
+        If Not fso.FileExists(fileInfo(0)) Then
+            Err.Raise Errors.FileDoesNotExist, , "File " & fileInfo(0) & " does not exist in installation directory. " _
+                & vbNewLine & vbNewLine & "Please check package installation."
+        End If
+        
+        Dim textFile As Object
+        Set textFile = fso.OpenTextFile(fileInfo(0))
+                
+        Dim hash As String
+        If Not textFile.AtEndOfStream Then
+            hash = MD5.MD5_string(textFile.ReadAll)
+        Else
+            hash = MD5.MD5_string("")
+        End If
+        
+        Dim srcFile As ISourceFile
+        Set srcFile = SourceFile.Create( _
+            fileInfo(0), _
+            textFile, _
+            fileInfo(1), _
+            hash)
+            
+        sourceFiles.Add srcFile
+    
+    Next
+    
+    Set Create = Me
+End Function
+
+Public Property Get IPackage_Name() As String
+    IPackage_Name = pkgName
+End Property
+
+Public Property Get IPackage_Version() As String
+    IPackage_Version = pkgVersion
+End Property
+
+Public Property Get IPackage_File(ByVal I As Integer) As ISourceFile
+    If I < 0 Or I > sourceFiles.count Then
+        Err.Raise 9, , "Error in package class." & vbNewLine & vbNewLine & Err.description
+    End If
+    
+    Set IPackage_File = sourceFiles.item(I)
+End Property
+
+Public Property Get IPackage_FilesCount() As Integer
+    IPackage_FilesCount = sourceFiles.count
+End Property
